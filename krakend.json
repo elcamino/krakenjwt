@@ -1,0 +1,78 @@
+{
+  "version": 2,
+  "extra_config": {
+    "github_com/devopsfaith/krakend-cors": {
+      "allow_origins": [
+        "*"
+      ],
+      "expose_headers": [
+        "Content-Length"
+      ],
+      "max_age": "12h",
+      "allow_methods": [
+        "GET",
+        "HEAD",
+        "POST"
+      ]
+    }
+  },
+  "timeout": "3000ms",
+  "cache_ttl": "10ms",
+  "output_encoding": "json",
+  "name": "test",
+  "endpoints": [
+    {
+      "endpoint": "/t/{id}",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {
+        "github.com/devopsfaith/krakend-lua/proxy": {
+          "post": "local resp = response.load(); resp:isComplete(true); resp:headers('Set-Cookie', 'testcookie=xxx'); local responseData = resp:data(); print(responseData); local cardData = responseData:get('credit_card'); local num = cardData:get('number'); print(num); cardData:set(\"number\", 'XXXXXXXXXXXXXXXX');"
+        }
+      },
+      "backend": [
+        {
+          "url_pattern": "/random/person/{id}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "host": [
+            "http://127.0.0.1:4680"
+          ],
+          "disable_host_sanitize": true,
+          "target": "person",
+          "mapping": {
+            "image": "profile_picture_url"
+          },
+          "deny": [
+            "credit_card.cvv"
+          ],
+          "extra_config": {
+          }
+        },
+        {
+          "url_pattern": "/random/car/{id}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "http://127.0.0.1:4680"
+          ],
+          "disable_host_sanitize": true
+        },
+        {
+          "url_pattern": "/random/domain/{id}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "http://127.0.0.1:4680"
+          ],
+          "disable_host_sanitize": true
+        }
+      ]
+    }
+  ]
+}
